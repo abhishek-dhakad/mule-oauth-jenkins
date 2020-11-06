@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:java="http://www.mulesoft.org/schema/mule/java" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:oauth2-provider="http://www.mulesoft.org/schema/mule/oauth2-provider" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/oauth2-provider http://www.mulesoft.org/schema/mule/oauth2-provider/current/mule-oauth2-provider.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd">
+	<os:object-store name="client_OS" doc:name="Object store" doc:id="4ad115f4-1e41-4c45-b434-f7a5fa2b753c" />
+	<os:object-store name="token_OS" doc:name="Object store" doc:id="834d16b1-8f83-41f7-9a68-656dc8ffe13e" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="75b1b52c-56d0-4fe9-b2d4-0b61a24954d9" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<oauth2-provider:config name="OAuth2_Provider_Config" doc:name="OAuth2 Provider Config" doc:id="93ceebb5-0a96-4fd7-8b3d-b97bf3edb2cb" listenerConfig="HTTP_Listener_config" clientStore="client_OS" supportedGrantTypes="CLIENT_CREDENTIALS">
+		<oauth2-provider:token-config tokenTtl="5" tokenTtlTimeUnit="MINUTES" tokenStore="token_OS"/>
+	</oauth2-provider:config>
+	<flow name="mule-auth-providerFlow" doc:id="bb92ade3-9030-4328-80a2-1360ce12c972" >
+		<http:listener doc:name="Listener" doc:id="aa71c141-490a-496b-bc54-a0bbc12f34b5" config-ref="HTTP_Listener_config" path="/create_client" allowedMethods="GET"/>
+		<set-variable value="#[uuid()]" doc:name="Set Variable" doc:id="a92773d8-5ba0-4937-b838-5b4a1ad52705" variableName="client_id"/>
+		<java:invoke-static doc:name="Invoke static" doc:id="95dad552-bb13-48ae-aa24-844340f6e52c" class="com.auth.AuthIDGeneration" method="generateRandomPassword()" target="client_secret"/>
+		<oauth2-provider:create-client doc:name="Create client" doc:id="b91760fe-e6cf-4a7f-9cfa-f3e33925f5dc" config-ref="OAuth2_Provider_Config" clientId="#[vars.client_id]" secret="#[vars.client_secret]" authorizedGrantTypes='#[["CLIENT_CREDENTIALS"]]' failIfPresent="true" type="CONFIDENTIAL"/>
+		<set-payload value='#[output application/json
+---
+{
+	client_id : vars.client_id,
+	client_secret : vars.client_secret
+}]' doc:name="Set Payload" doc:id="81feafd0-0a03-4d74-8afb-305fc06a2e84" />
+	</flow>
+	<flow name="mule-auth-providerFlow1" doc:id="8f99d258-d972-4117-a97f-af97f5be12b8" >
+		<http:listener doc:name="Listener" doc:id="d07f53cc-315f-4738-857c-766b4e6a7faf" config-ref="HTTP_Listener_config" path="/validate"/>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="e3d2d5e8-a846-4861-bb99-c1ca9988f716" variableName="inputPayload"/>
+		<oauth2-provider:validate-token doc:name="Validate token" doc:id="88dd40cc-8d74-4ec1-beb5-88d6e281783e" config-ref="OAuth2_Provider_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="065c5979-b9d1-41d8-91bd-d6087ca9ebae" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[payload] ++ [vars.inputPayload]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+
+</mule>
