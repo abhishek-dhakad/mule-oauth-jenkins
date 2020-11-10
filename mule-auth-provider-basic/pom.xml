@@ -15,12 +15,6 @@
 		<app.runtime>4.3.0-20200824</app.runtime>
 		<mule.maven.plugin.version>3.3.5</mule.maven.plugin.version>
 	</properties>
-
-
-
-
-
-
 	<build>
 		<plugins>
 			<plugin>
@@ -34,7 +28,14 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
-				<classifier>mule-application</classifier>
+					<classifier>mule-application</classifier>
+					<cloudHubDeployment>
+						<username>abhishek__dhakad3</username>
+						<password>Password@1</password>
+						<environment>Sandbox</environment>
+						<applicationName>mule-oauth-jenkins1</applicationName>
+						<muleVersion>4.3.0</muleVersion>
+					</cloudHubDeployment>
                 </configuration>
 			</plugin>
 		<plugin>
