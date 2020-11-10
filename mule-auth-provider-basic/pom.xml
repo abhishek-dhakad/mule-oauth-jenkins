@@ -4,6 +4,9 @@
 
 
 
+
+
+
 	<groupId>com.mycompany</groupId>
 	<artifactId>mule-auth-provider1</artifactId>
     <version>1.0.0-SNAPSHOT</version>
@@ -35,7 +38,7 @@
 						<username>abhishek__dhakad3</username>
 						<password>Password@1</password>
 						<environment>Sandbox</environment>
-						<applicationName>mule-oauth-jenkins1</applicationName>
+						<applicationName>mule-oauth-jenkins2</applicationName>
 						<muleVersion>4.3.0</muleVersion>
 						<workers>1</workers>
 						<workerType>MICRO</workerType>
